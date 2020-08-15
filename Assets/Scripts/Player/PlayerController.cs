@@ -4,21 +4,18 @@ public class PlayerController : MonoBehaviour
     //Player parameters
     [Range (1, 2)] //Enables a nifty slider in the editor
     public int playerNumber = 1;
-    //Indicates what player this is: P1 or P2
-    public float moveSpeed = 5f;
 
-    //Cached components
+    private PlayerStats playerStats;
     private Rigidbody rigidBody;
     private Transform myTransform;
     private Animator animator;
 
-    // Use this for initialization
     void Start ()
     {
-        //Cache the attached components for better performance and less typing
         rigidBody = GetComponent<Rigidbody> ();
         myTransform = transform;
         animator = myTransform.Find ("PlayerModel").GetComponent<Animator> ();
+        playerStats = GetComponent<PlayerStats>();
     }
 
     // Update is called once per frame
@@ -31,7 +28,7 @@ public class PlayerController : MonoBehaviour
     {
         animator.SetBool ("Walking", false);
 
-        //Depending on the player number, use different input for moving
+        // Depending on the player number, use different input for moving
         if (playerNumber == 1)
         {
             UpdatePlayer1Movement ();
@@ -44,6 +41,8 @@ public class PlayerController : MonoBehaviour
     /// Updates Player 1's movement and facing rotation using the WASD keys and drops bombs using Space
     private void UpdatePlayer1Movement ()
     {
+        float moveSpeed = playerStats.GetSpeed();
+
         if (Input.GetKey (KeyCode.W))
         { //Up movement
             rigidBody.velocity = new Vector3 (rigidBody.velocity.x, rigidBody.velocity.y, moveSpeed);
@@ -76,6 +75,8 @@ public class PlayerController : MonoBehaviour
     /// Updates Player 2's movement and facing rotation using the arrow keys and drops bombs using Enter or Return
     private void UpdatePlayer2Movement ()
     {
+        float moveSpeed = playerStats.GetSpeed();
+
         if (Input.GetKey (KeyCode.UpArrow))
         { //Up movement
             rigidBody.velocity = new Vector3 (rigidBody.velocity.x, rigidBody.velocity.y, moveSpeed);
