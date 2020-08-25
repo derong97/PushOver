@@ -31,6 +31,7 @@ public class Obstacles : MonoBehaviour {
             Debug.Log (countdown);
             InvokeRepeating ("spawnTile", 0f, countdown);
         }
+        if (spawnLeft.Count == 0) CancelInvoke ("spawnTile");
     }
 
     private void spawnFire () {
@@ -58,6 +59,7 @@ public class Obstacles : MonoBehaviour {
     }
 
     private IEnumerator choosePothole () {
+        // TODO: spiral from the outside to the inside
         int destination = chooseDestination (spawnPoints.Length);
         spawnPoints[destination].SetActive (false);
         yield return new WaitForSeconds (2);
