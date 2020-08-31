@@ -11,13 +11,20 @@ public class Obstacles : MonoBehaviour {
     public Transform fireObstacles;
     public GameObject tile;
     public Transform tileObstacles;
-    GameObject[] spawnPoints;
+    List<GameObject> spawnBorder;
+    List<GameObject> spawnPoints;
     List<GameObject> spawnLeft;
 
     void Start () {
         time = timer.GetComponent<Timer> ();
-        spawnPoints = GameObject.FindGameObjectsWithTag ("SpawnPoint");
-        spawnLeft = new List<GameObject> (spawnPoints);
+        spawnBorder = new List<GameObject> (GameObject.FindGameObjectsWithTag ("SpawnBorder"));
+        spawnPoints = new List<GameObject> (GameObject.FindGameObjectsWithTag ("SpawnPoint"));
+        // Spawn second border and check when tiles fall
+        // spawnLeft consist of both second and first border
+        spawnLeft = spawnPoints;
+        Debug.Log (spawnBorder.Count);
+        Debug.Log (spawnPoints.Count);
+        Debug.Log (spawnLeft.Count);
         InvokeRepeating ("spawnFire", 0f, 5f);
         InvokeRepeating ("spawnPothole", 0f, 5f);
         InvokeRepeating ("spawnTile", 0f, 2f);
@@ -35,14 +42,20 @@ public class Obstacles : MonoBehaviour {
     }
 
     private void spawnFire () {
-        int destination = chooseDestination (spawnPoints.Length);
+        int destination = chooseDestination (spawnPoints.Count);
         spawn (fire, spawnPoints[destination].transform.position, fireObstacles);
     }
 
     private void spawnTile () {
-        int destination = chooseDestination (spawnLeft.Count);
-        spawn (tile, spawnLeft[destination].transform.position, tileObstacles);
-        spawnLeft.RemoveAt (destination);
+        if (spawnBorder.Count != 0) {
+            int destination = chooseDestination (spawnBorder.Count);
+            spawn (tile, spawnBorder[destination].transform.position, tileObstacles);
+            spawnBorder.RemoveAt (destination);
+        } else {
+            int destination = chooseDestination (spawnLeft.Count);
+            spawn (tile, spawnLeft[destination].transform.position, tileObstacles);
+            spawnLeft.RemoveAt (destination);
+        }
     }
 
     private void spawnPothole () {
@@ -59,8 +72,7 @@ public class Obstacles : MonoBehaviour {
     }
 
     private IEnumerator choosePothole () {
-        // TODO: spiral from the outside to the inside
-        int destination = chooseDestination (spawnPoints.Length);
+        int destination = chooseDestination (spawnPoints.Count);
         spawnPoints[destination].SetActive (false);
         yield return new WaitForSeconds (2);
         spawnPoints[destination].SetActive (true);
