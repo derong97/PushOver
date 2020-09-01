@@ -4,78 +4,77 @@ using UnityEngine;
 
 public class Obstacles : MonoBehaviour {
 
-    public GameObject timer;
-    Timer time;
-    bool check = false;
-    public GameObject fire;
-    public Transform fireObstacles;
-    public GameObject tile;
-    public Transform tileObstacles;
-    List<GameObject> spawnBorder;
-    List<GameObject> spawnPoints;
-    List<GameObject> spawnLeft;
+    private bool check = false;
+    public GameObject firePrefab;
+    public GameObject fallingBlockPrefab;
+
+    private GameObject fireInstantiation;
+    private GameObject fallingBlockInstantiation;
+
+    private List<GameObject> outerList;
+    private List<GameObject> innerList;
+    private List<GameObject> spawnLeft;
 
     void Start () {
-        time = timer.GetComponent<Timer> ();
-        spawnBorder = new List<GameObject> (GameObject.FindGameObjectsWithTag ("SpawnBorder"));
-        spawnPoints = new List<GameObject> (GameObject.FindGameObjectsWithTag ("SpawnPoint"));
+        fireInstantiation = Spawn(firePrefab, Vector3.zero, transform);
+        fallingBlockInstantiation = Spawn(fallingBlockPrefab, Vector3.zero, transform);
+
+        outerList = new List<GameObject> (GameObject.FindGameObjectsWithTag ("Outer"));
+        innerList = new List<GameObject> (GameObject.FindGameObjectsWithTag ("Inner"));
         // Spawn second border and check when tiles fall
         // spawnLeft consist of both second and first border
-        spawnLeft = spawnPoints;
-        Debug.Log (spawnBorder.Count);
-        Debug.Log (spawnPoints.Count);
-        Debug.Log (spawnLeft.Count);
-        InvokeRepeating ("spawnFire", 0f, 5f);
-        InvokeRepeating ("spawnPothole", 0f, 5f);
-        InvokeRepeating ("spawnTile", 0f, 2f);
+        spawnLeft = innerList;
+        InvokeRepeating ("SpawnFire", 0f, 5f);
+        InvokeRepeating ("SpawnPothole", 0f, 5f);
+        InvokeRepeating ("SpawnFallingBlock", 0f, 2f);
     }
+
 
     void Update () {
-        if (time.sec == 10 && !check) {
-            CancelInvoke ("spawnTile");
+        
+        if (Timer.getRemainingTime() <= 10 && !check) {
+            CancelInvoke ("SpawnFallingBlock");
             check = true;
             float countdown = 10f / spawnLeft.Count;
-            Debug.Log (countdown);
-            InvokeRepeating ("spawnTile", 0f, countdown);
+            InvokeRepeating ("SpawnFallingBlock", 0f, countdown);
         }
-        if (spawnLeft.Count == 0) CancelInvoke ("spawnTile");
+        if (spawnLeft.Count == 0)
+        {
+            CancelInvoke("SpawnFallingBlock");
+        }
+    }
+    private GameObject Spawn(GameObject go, Vector3 pos, Transform parent)
+    {
+        GameObject clone = Instantiate(go, pos, Quaternion.Euler(0, 180, 0));
+        clone.transform.SetParent(parent);
+        return clone;
     }
 
-    private void spawnFire () {
-        int destination = chooseDestination (spawnPoints.Count);
-        spawn (fire, spawnPoints[destination].transform.position, fireObstacles);
+    private void SpawnFire () {
+        int destination = Random.Range (0, innerList.Count);
+        Spawn (firePrefab, innerList[destination].transform.position, fireInstantiation.transform);
     }
 
-    private void spawnTile () {
-        if (spawnBorder.Count != 0) {
-            int destination = chooseDestination (spawnBorder.Count);
-            spawn (tile, spawnBorder[destination].transform.position, tileObstacles);
-            spawnBorder.RemoveAt (destination);
+    private void SpawnFallingBlock () {
+        if (outerList.Count != 0) {
+            int destination = Random.Range (0, outerList.Count);
+            Spawn (fallingBlockPrefab, outerList[destination].transform.position, fallingBlockInstantiation.transform);
+            outerList.RemoveAt (destination);
         } else {
-            int destination = chooseDestination (spawnLeft.Count);
-            spawn (tile, spawnLeft[destination].transform.position, tileObstacles);
+            int destination = Random.Range (0, spawnLeft.Count);
+            Spawn (fallingBlockPrefab, spawnLeft[destination].transform.position, fallingBlockInstantiation.transform);
             spawnLeft.RemoveAt (destination);
         }
     }
 
-    private void spawnPothole () {
-        StartCoroutine (choosePothole ());
+    private void SpawnPothole () {
+        StartCoroutine (ChoosePothole ());
     }
-
-    private int chooseDestination (int length) {
-        return Random.Range (0, length);
+    private IEnumerator ChoosePothole()
+    {
+        int destination = Random.Range(0, innerList.Count);
+        innerList[destination].SetActive(false);
+        yield return new WaitForSeconds(2);
+        innerList[destination].SetActive(true);
     }
-
-    private void spawn (GameObject obj, Vector3 pos, Transform parent) {
-        GameObject clone = Instantiate (obj, pos, Quaternion.Euler (0, 180, 0));
-        clone.transform.SetParent (parent);
-    }
-
-    private IEnumerator choosePothole () {
-        int destination = chooseDestination (spawnPoints.Count);
-        spawnPoints[destination].SetActive (false);
-        yield return new WaitForSeconds (2);
-        spawnPoints[destination].SetActive (true);
-    }
-
 }

@@ -1,44 +1,44 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class Timer : MonoBehaviour {
-    public Image LoadingBar;
+    public Image loadingBar;
     public Text timeText;
-    public int min;
-    public int sec;
-    int totalsec = 0;
-    int total = 0;
+
+    private int gameMinutes;
+    private int gameSeconds;
+    private static int remainingGameSeconds;
+    private static int maxGameSeconds;
 
     private void Start () {
-        timeText.text = min + ":" + sec.ToString ("D2");
-        if (min > 0) totalsec += min * 60;
-        if (sec > 0) totalsec += sec;
-        total = totalsec;
-        StartCoroutine (second ());
+        gameMinutes = GameManager.Instance.gameMinutes;
+        gameSeconds = GameManager.Instance.gameSeconds;
+        timeText.text = gameMinutes + ":" + gameSeconds.ToString ("D2");
+        maxGameSeconds = remainingGameSeconds = gameMinutes * 60 + gameSeconds;
+        InvokeRepeating("CountDown", 0f, 1f); // starts countdown immediately in 1s interval
     }
 
-    private void Update () {
-        if (sec == 0 && min == 0) {
-            StopCoroutine (second ());
+    private void CountDown()
+    {
+        remainingGameSeconds--;
+        gameMinutes = remainingGameSeconds / 60;
+        gameSeconds = remainingGameSeconds % 60;
+        timeText.text = gameMinutes + ":" + gameSeconds.ToString("D2");
+        FillLoadingBar();
+
+        if (remainingGameSeconds <= 0)
+        {
+            CancelInvoke("CountDown");
         }
     }
 
-    IEnumerator second () {
-        yield return new WaitForSeconds (1f);
-        if (sec > 0) sec--;
-        if (sec == 0 && min != 0) {
-            sec = 60;
-            min--;
-        }
-        timeText.text = min + ":" + sec.ToString ("D2");
-        fillLoadingBar ();
-        StartCoroutine (second ());
+    private void FillLoadingBar () 
+    {
+        loadingBar.fillAmount = (float) remainingGameSeconds / maxGameSeconds;
     }
 
-    private void fillLoadingBar () {
-        totalsec--;
-        float fill = (float) totalsec / total;
-        LoadingBar.fillAmount = fill;
+    public static int getRemainingTime()
+    {
+        return remainingGameSeconds;
     }
 }

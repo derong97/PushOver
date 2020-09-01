@@ -30,7 +30,7 @@ public class GrowBig : MonoBehaviour
         // Remove power up object
         Destroy(gameObject);
 
-        // Reverse the effect on our player
+        // Reverse the effect on the player
         stats.SetSize(1/multiplier);
     }
 }

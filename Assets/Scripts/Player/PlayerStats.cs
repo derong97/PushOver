@@ -3,7 +3,7 @@
 public class PlayerStats : MonoBehaviour
 {
     // Player's speed
-    private float moveSpeed = 6f;
+    private float moveSpeed = 3f;
 
     public void SetSize(float multiplier)
     { // Player becomes harder to push if heavier

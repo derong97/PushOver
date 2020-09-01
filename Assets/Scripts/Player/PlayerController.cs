@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 public class PlayerController : MonoBehaviour
 {
-    //Player parameters
     [Range (1, 2)] //Enables a nifty slider in the editor
     public int playerNumber = 1;
 
@@ -21,20 +20,21 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update ()
     {
-        UpdateMovement ();
-    }
-
-    private void UpdateMovement ()
-    {
-        animator.SetBool ("Walking", false);
+        animator.SetBool("Walking", false);
 
         // Depending on the player number, use different input for moving
         if (playerNumber == 1)
         {
-            UpdatePlayer1Movement ();
-        } else
+            UpdatePlayer1Movement();
+        }
+        else
         {
-            UpdatePlayer2Movement ();
+            UpdatePlayer2Movement();
+        }
+
+        if (transform.position.y < -10)
+        {
+            Destroy(gameObject);
         }
     }
 
