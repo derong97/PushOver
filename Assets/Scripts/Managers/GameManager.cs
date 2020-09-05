@@ -1,13 +1,10 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public List<GameObject> outerList;
-    public List<GameObject> innerList;
-    public List<GameObject> spawnLeft;
-    public int gameMinutes;
+    public int gameMinutes; 
     public int gameSeconds;
+    private GamePreferences.SuddenDeathMode suddenDeathMode;
 
     private static GameManager _instance;
 
@@ -22,12 +19,9 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        
-        outerList = new List<GameObject>(GameObject.FindGameObjectsWithTag("Outer"));
-        innerList = new List<GameObject>(GameObject.FindGameObjectsWithTag("Inner"));
-        spawnLeft = innerList;
-        gameMinutes = 0; // TODO: get from start screen
-        gameSeconds = 30; // TODO: get from start screen
+        gameMinutes = PlayerPrefs.GetInt("gameMinutes");
+        gameSeconds = PlayerPrefs.GetInt("gameSeconds");
+        suddenDeathMode = (GamePreferences.SuddenDeathMode) PlayerPrefs.GetInt("suddenDeathMode");
     }
 
     public static GameManager Instance
@@ -39,8 +33,10 @@ public class GameManager : MonoBehaviour
                 _instance = FindObjectOfType<GameManager>();
                 if(_instance == null)
                 {
-                    GameObject go = new GameObject();
-                    go.name = typeof(GameManager).Name;
+                    GameObject go = new GameObject
+                    {
+                        name = typeof(GameManager).Name
+                    };
                     _instance = go.AddComponent<GameManager>();
                     DontDestroyOnLoad(go);
                 }
