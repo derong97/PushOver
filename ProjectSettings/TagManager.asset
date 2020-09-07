@@ -4,10 +4,7 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - Inner
-  - Outer
-  - Image
-  - name
+  - Block
   layers:
   - Default
   - TransparentFX
