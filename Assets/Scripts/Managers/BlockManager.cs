@@ -53,8 +53,13 @@ public class BlockManager : MonoBehaviour
         }
         else{
             string name = blockNameList[index];
-            return blockGOList.Where(go => go.name == name).SingleOrDefault();
+            return GetNamedBlock(name);
         }
+    }
+
+    public GameObject GetNamedBlock(string name)
+    {
+        return blockGOList.Where(go => go.name == name).SingleOrDefault();
     }
 
     public void UseBlock(GameObject go)
