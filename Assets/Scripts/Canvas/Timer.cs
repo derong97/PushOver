@@ -2,13 +2,19 @@
 using UnityEngine.UI;
 
 public class Timer : MonoBehaviour {
+
+    public static Timer instance;
+
     public Image loadingBar;
     public Text timeText;
 
-    private int gameMinutes;
-    private int gameSeconds;
-    private static int remainingGameSeconds;
-    private static int maxGameSeconds;
+    [SerializeField]
+    private int gameMinutes, gameSeconds, remainingGameSeconds, maxGameSeconds;
+
+    private void Awake()
+    {
+        instance = this;
+    }
 
     private void Start () {
         gameMinutes = GameManager.Instance.gameMinutes;
@@ -37,7 +43,7 @@ public class Timer : MonoBehaviour {
         loadingBar.fillAmount = (float) remainingGameSeconds / maxGameSeconds;
     }
 
-    public static int getRemainingTime()
+    private int GetRemainingTime()
     {
         return remainingGameSeconds;
     }

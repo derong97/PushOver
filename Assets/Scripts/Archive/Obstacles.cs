@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Obstacles : MonoBehaviour {
+    /*
 
     private bool check = false;
     public GameObject firePrefab;
@@ -77,4 +78,5 @@ public class Obstacles : MonoBehaviour {
         yield return new WaitForSeconds(2);
         innerList[destination].SetActive(true);
     }
+    */
 }

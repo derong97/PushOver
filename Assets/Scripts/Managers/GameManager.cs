@@ -2,9 +2,8 @@
 
 public class GameManager : MonoBehaviour
 {
-    public int gameMinutes; 
-    public int gameSeconds;
-    private GamePreferences.SuddenDeathMode suddenDeathMode;
+    public int gameMinutes, gameSeconds;
+    public GamePreferences.SuddenDeathMode suddenDeathMode;
 
     private static GameManager _instance;
 
@@ -19,8 +18,8 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
-        gameMinutes = PlayerPrefs.GetInt("gameMinutes");
-        gameSeconds = PlayerPrefs.GetInt("gameSeconds");
+        gameMinutes = PlayerPrefs.GetInt("totalGameSeconds") / 60;
+        gameSeconds = PlayerPrefs.GetInt("gameSeconds") % 60;
         suddenDeathMode = (GamePreferences.SuddenDeathMode) PlayerPrefs.GetInt("suddenDeathMode");
     }
 

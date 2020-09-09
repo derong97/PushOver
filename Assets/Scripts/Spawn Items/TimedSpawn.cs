@@ -4,9 +4,9 @@ using UnityEngine;
 public class TimedSpawn : MonoBehaviour
 {
     public GameObject prefab;
-    protected float minRespawnSeconds;
-    protected float maxRespawnSeconds;
-    protected float effectSeconds;
+
+    [SerializeField]
+    protected float minRespawnSeconds, maxRespawnSeconds, effectSeconds;
 
     private void Start()
     {
@@ -38,8 +38,6 @@ public class TimedSpawn : MonoBehaviour
             Vector3 destination = targetBlock.transform.position + new Vector3(0, targetBlock.transform.lossyScale.y, 0);
             GameObject clone = Instantiate(prefab, destination, Quaternion.identity);
             clone.transform.SetParent(transform);
-
-            Debug.Log(clone + " spawned at " + targetBlock);
 
             yield return new WaitForSeconds(effectSeconds);
 

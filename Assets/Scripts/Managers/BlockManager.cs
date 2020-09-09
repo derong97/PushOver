@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class BlockManager : MonoBehaviour
 {
-    private List<GameObject> blockGOList;
-    private List<string> blockNameList; // keeps track of free blocks
     private static BlockManager _instance;
+    private List<GameObject> blockGOList;
+
+    [SerializeField]
+    private List<string> blockNameList; // keeps track of free blocks
 
     private void Awake()
     {

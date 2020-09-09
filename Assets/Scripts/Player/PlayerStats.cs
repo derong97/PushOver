@@ -2,8 +2,10 @@
 
 public class PlayerStats : MonoBehaviour
 {
+    [SerializeField]
     private float moveSpeed = 3f;
     private float multiplier = 1f;
+
     public delegate void DelegateMethod(float multiplier);
 
     public void CallMethod(DelegateMethod method)

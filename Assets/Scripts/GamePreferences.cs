@@ -2,11 +2,11 @@
 
 public class GamePreferences: MonoBehaviour
 {
-    // TODO: HARDCODED FOR NOW
+    private int gameSeconds = 30, gameMinutes = 0;
+
     private void Start()
     {
-        PlayerPrefs.SetInt("gameMinutes", 0);
-        PlayerPrefs.SetInt("gameSeconds", 30);
+        PlayerPrefs.SetInt("totalGameSeconds", gameMinutes * 60 + gameSeconds);
         PlayerPrefs.SetInt("suddenDeathMode", (int) SuddenDeathMode.RANDOM);
         PlayerPrefs.Save();
     }

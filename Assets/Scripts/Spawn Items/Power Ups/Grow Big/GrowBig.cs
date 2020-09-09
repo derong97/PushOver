@@ -4,7 +4,7 @@ public class GrowBig : PowerUp
 {
     private void Awake()
     {
-        multiplier = 1.2f;
+        multiplier = 1.3f;
         effectSeconds = 10f;
     }
 
