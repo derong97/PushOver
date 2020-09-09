@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using TMPro;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,11 +8,11 @@ public class SpawnCharacter : MonoBehaviour {
     public GameObject charCellPrefab;
     public Transform playerSlotsContainer;
 
-    void Awake () {
+    private void Awake () {
         instance = this;
     }
 
-    void Start () {
+    private void Start () {
         foreach (Character character in characters) {
             SpawnCharacterCell (character);
         }
