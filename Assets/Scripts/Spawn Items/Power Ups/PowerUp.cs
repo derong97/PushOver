@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using Mirror;
+using System.Collections;
 using UnityEngine;
 
 abstract public class PowerUp : MonoBehaviour
@@ -15,6 +16,7 @@ abstract public class PowerUp : MonoBehaviour
             StartCoroutine(PickUp(other));
         }
     }
+
     protected virtual IEnumerator PickUp(Collider player)
     {
         BlockManager.Instance.FreeBlock(attached_block);

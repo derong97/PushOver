@@ -6,6 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Imports/Mirror/Examples/Pong/Scenes/Scene.unity
-    guid: 89a84548859e3b643b4fb27984dc2b0d
+    path: Assets/Mirror Tutorial/Scenes/Offline.unity
+    guid: 2fc1e54fe902d234fa3f05b463385bac
+  - enabled: 1
+    path: Assets/Mirror Tutorial/Scenes/Lobby.unity
+    guid: c4e17e8b0cf49ee45a3f3e2f1c437e3b
+  - enabled: 1
+    path: Assets/Mirror Tutorial/Scenes/Game.unity
+    guid: 55648d3e22971ac4ea0552a4e187bcb8
   m_configObjects: {}

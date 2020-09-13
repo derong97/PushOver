@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Mirror;
+using UnityEngine;
 using UnityEngine.UI;
 
 public class Timer : MonoBehaviour {
@@ -17,11 +18,10 @@ public class Timer : MonoBehaviour {
     }
 
     private void Start () {
-        gameMinutes = GameManager.Instance.gameMinutes;
-        gameSeconds = GameManager.Instance.gameSeconds;
+        gameMinutes = GameManager.Instance.totalGameSeconds / 60;
+        gameSeconds = GameManager.Instance.totalGameSeconds % 60;
         timeText.text = gameMinutes + ":" + gameSeconds.ToString ("D2");
         maxGameSeconds = remainingGameSeconds = gameMinutes * 60 + gameSeconds;
-        InvokeRepeating("CountDown", 0f, 1f); // starts countdown immediately in 1s interval
     }
 
     private void CountDown()
@@ -46,5 +46,10 @@ public class Timer : MonoBehaviour {
     private int GetRemainingTime()
     {
         return remainingGameSeconds;
+    }
+
+    public void StartTimer()
+    {
+        InvokeRepeating("CountDown", 0f, 1f); // starts countdown immediately in 1s interval
     }
 }

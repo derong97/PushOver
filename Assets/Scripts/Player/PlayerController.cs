@@ -1,79 +1,45 @@
-﻿using UnityEngine;
-public class PlayerController : MonoBehaviour
+﻿using Mirror;
+using UnityEngine;
+public class PlayerController : NetworkBehaviour
 {
-    [Range (1, 2)] //Enables a nifty slider in the editor
-    public int playerNumber = 1;
-
     private PlayerStats playerStats;
     private Rigidbody rigidBody;
     private Transform myTransform;
     private Animator animator;
 
-    void Start ()
+    private void Start ()
     {
-        rigidBody = GetComponent<Rigidbody> ();
+        rigidBody = GetComponent<Rigidbody>();
         myTransform = transform;
-        animator = myTransform.Find ("PlayerModel").GetComponent<Animator> ();
+        animator = myTransform.Find ("PlayerModel").GetComponent<Animator>();
         playerStats = GetComponent<PlayerStats>();
     }
 
-    // Update is called once per frame
-    void Update ()
+    [Client]
+    private void Update ()
     {
-        animator.SetBool("Walking", false);
-
-        // Depending on the player number, use different input for moving
-        if (playerNumber == 1)
-        {
-            UpdatePlayer1Movement();
+        if (!hasAuthority) { 
+            return; 
         }
-        else
+        if (!Input.anyKey)
         {
-            UpdatePlayer2Movement();
+            animator.SetBool("Walking", false);
+            return;
         }
 
-        if (transform.position.y < -10)
-        {
-            Destroy(gameObject);
-        }
+        CmdMove();
+
+        animator.SetBool("Walking", true);
     }
 
-    /// Updates Player 1's movement and facing rotation using the WASD keys and drops bombs using Space
-    private void UpdatePlayer1Movement ()
+    [Command]
+    private void CmdMove()
     {
-        float moveSpeed = playerStats.GetSpeed();
-
-        if (Input.GetKey (KeyCode.W))
-        { //Up movement
-            rigidBody.velocity = new Vector3 (rigidBody.velocity.x, rigidBody.velocity.y, moveSpeed);
-            myTransform.rotation = Quaternion.Euler (0, 0, 0);
-            animator.SetBool ("Walking", true);
-        }
-
-        if (Input.GetKey (KeyCode.A))
-        { //Left movement
-            rigidBody.velocity = new Vector3 (-moveSpeed, rigidBody.velocity.y, rigidBody.velocity.z);
-            myTransform.rotation = Quaternion.Euler (0, 270, 0);
-            animator.SetBool ("Walking", true);
-        }
-
-        if (Input.GetKey (KeyCode.S))
-        { //Down movement
-            rigidBody.velocity = new Vector3 (rigidBody.velocity.x, rigidBody.velocity.y, -moveSpeed);
-            myTransform.rotation = Quaternion.Euler (0, 180, 0);
-            animator.SetBool ("Walking", true);
-        }
-
-        if (Input.GetKey (KeyCode.D))
-        { //Right movement
-            rigidBody.velocity = new Vector3 (moveSpeed, rigidBody.velocity.y, rigidBody.velocity.z);
-            myTransform.rotation = Quaternion.Euler (0, 90, 0);
-            animator.SetBool ("Walking", true);
-        }
+        UpdatePlayerMovement();
     }
 
-    /// Updates Player 2's movement and facing rotation using the arrow keys and drops bombs using Enter or Return
-    private void UpdatePlayer2Movement ()
+    [ClientRpc]
+    private void UpdatePlayerMovement ()
     {
         float moveSpeed = playerStats.GetSpeed();
 
@@ -81,28 +47,29 @@ public class PlayerController : MonoBehaviour
         { //Up movement
             rigidBody.velocity = new Vector3 (rigidBody.velocity.x, rigidBody.velocity.y, moveSpeed);
             myTransform.rotation = Quaternion.Euler (0, 0, 0);
-            animator.SetBool ("Walking", true);
         }
 
         if (Input.GetKey (KeyCode.LeftArrow))
         { //Left movement
             rigidBody.velocity = new Vector3 (-moveSpeed, rigidBody.velocity.y, rigidBody.velocity.z);
             myTransform.rotation = Quaternion.Euler (0, 270, 0);
-            animator.SetBool ("Walking", true);
         }
 
         if (Input.GetKey (KeyCode.DownArrow))
         { //Down movement
             rigidBody.velocity = new Vector3 (rigidBody.velocity.x, rigidBody.velocity.y, -moveSpeed);
             myTransform.rotation = Quaternion.Euler (0, 180, 0);
-            animator.SetBool ("Walking", true);
         }
 
         if (Input.GetKey (KeyCode.RightArrow))
         { //Right movement
             rigidBody.velocity = new Vector3 (moveSpeed, rigidBody.velocity.y, rigidBody.velocity.z);
             myTransform.rotation = Quaternion.Euler (0, 90, 0);
-            animator.SetBool ("Walking", true);
+        }
+
+        if (transform.position.y < -10)
+        {
+            Destroy(gameObject);
         }
     }
 }

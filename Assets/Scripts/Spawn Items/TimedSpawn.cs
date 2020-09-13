@@ -1,7 +1,8 @@
-﻿using System.Collections;
+﻿using Mirror;
+using System.Collections;
 using UnityEngine;
 
-public class TimedSpawn : MonoBehaviour
+public class TimedSpawn : NetworkBehaviour
 {
     public GameObject prefab;
 
