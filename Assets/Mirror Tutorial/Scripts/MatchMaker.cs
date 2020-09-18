@@ -22,10 +22,10 @@ namespace MirrorTutorial
         public Match() { }
     }
 
-    [System.Serializable]
+    [Serializable]
     public class SyncListGameObject : SyncList<GameObject> { }
 
-    [System.Serializable]
+    [Serializable]
     public class SyncListMatch : SyncList<Match> { }
 
     public class MatchMaker : NetworkBehaviour
@@ -35,19 +35,24 @@ namespace MirrorTutorial
         public SyncListMatch matches = new SyncListMatch();
         public SyncListString matchIDs = new SyncListString();
 
+        [SerializeField] GameObject turnManagerPrefab;
+
         void Start()
         {
             instance = this;
         }
 
-        public bool HostGame(string _matchID, GameObject _player)
+        public bool HostGame(string _matchID, GameObject _player, out int playerIndex)
         {
+            playerIndex = -1;
+
             if (!matchIDs.Contains(_matchID))
             {
                 matchIDs.Add(_matchID);
                 Match match = new Match(_matchID, _player);
                 matches.Add(match);
                 Debug.Log($"Match generated");
+                playerIndex = 1;
                 return true;
             }
             else
@@ -57,8 +62,10 @@ namespace MirrorTutorial
             }
         }
 
-        public bool JoinGame(string _matchID, GameObject _player)
+        public bool JoinGame(string _matchID, GameObject _player, out int playerIndex)
         {
+            playerIndex = -1;
+
             if (matchIDs.Contains(_matchID))
             {
                 for(int i = 0; i < matches.Count; i++)
@@ -66,6 +73,7 @@ namespace MirrorTutorial
                     if(matches[i].matchID == _matchID)
                     {
                         matches[i].players.Add(_player);
+                        playerIndex = matches[i].players.Count;
                         break;
                     }
                 }
@@ -76,6 +84,28 @@ namespace MirrorTutorial
             {
                 Debug.Log($"Match ID does not exist");
                 return false;
+            }
+        }
+
+        public void BeginGame(string _matchID)
+        {
+            GameObject newTurnManager = Instantiate(turnManagerPrefab);
+            NetworkServer.Spawn(newTurnManager);
+            newTurnManager.GetComponent<NetworkMatchChecker>().matchId = _matchID.ToGuid();
+            TurnManager turnManager = newTurnManager.GetComponent<TurnManager>();
+
+            for(int i = 0; i < matches.Count; i++)
+            {
+                if(matches[i].matchID == _matchID)
+                {
+                    foreach(var player in matches[i].players)
+                    {
+                        Player _player = player.GetComponent<Player>();
+                        turnManager.AddPlayer(_player);
+                        _player.StartGame();
+                    }
+                    break;
+                }
             }
         }
 

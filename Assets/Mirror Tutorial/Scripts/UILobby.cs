@@ -7,11 +7,17 @@ namespace MirrorTutorial
     {
         public static UILobby instance;
 
-        [SerializeField] InputField joinMathInput;
+        [Header("Host Join")]
+        [SerializeField] InputField joinMatchInput;
         [SerializeField] Button joinButton;
         [SerializeField] Button hostButton;
-        [SerializeField] Button lobbyButton;
         [SerializeField] Canvas lobbyCanvas;
+
+        [Header("Lobby")]
+        [SerializeField] Transform UIPlayerParent;
+        [SerializeField] GameObject UIPlayerPrefab;
+        [SerializeField] Text matchIDText;
+        [SerializeField] GameObject beginGameButton;
 
         void Start()
         {
@@ -20,22 +26,25 @@ namespace MirrorTutorial
 
         public void Host()
         {
-            joinMathInput.interactable = false;
+            joinMatchInput.interactable = false;
             joinButton.interactable = false;
             hostButton.interactable = false;
 
             Player.localPlayer.HostGame();
         }
 
-        public void HostSuccess(bool success)
+        public void HostSuccess(bool success, string matchID)
         {
             if (success)
             {
                 lobbyCanvas.enabled = true;
+                SpawnPlayerPrefab(Player.localPlayer);
+                matchIDText.text = matchID;
+                beginGameButton.SetActive(true);
             }
             else
             {
-                joinMathInput.interactable = true;
+                joinMatchInput.interactable = true;
                 joinButton.interactable = true;
                 hostButton.interactable = true;
             }
@@ -43,26 +52,38 @@ namespace MirrorTutorial
 
         public void Join()
         {
-            joinMathInput.interactable = false;
+            joinMatchInput.interactable = false;
             joinButton.interactable = false;
             hostButton.interactable = false;
 
-            Player.localPlayer.JoinGame(joinMathInput.text);
+            Player.localPlayer.JoinGame(joinMatchInput.text.ToUpper());
         }
 
-        public void JoinSuccess(bool success)
+        public void JoinSuccess(bool success, string matchID)
         {
             if (success)
             {
                 lobbyCanvas.enabled = true;
+                SpawnPlayerPrefab(Player.localPlayer);
+                matchIDText.text = matchID;
             }
             else
             {
-                joinMathInput.interactable = true;
+                joinMatchInput.interactable = true;
                 joinButton.interactable = true;
                 hostButton.interactable = true;
             }
         }
-    }
 
+        public void SpawnPlayerPrefab(Player player)
+        {
+            GameObject newUIPlayer = Instantiate(UIPlayerPrefab, UIPlayerParent);
+            newUIPlayer.GetComponent<UIPlayer>().SetPlayer(player);
+        }
+
+        public void BeginGame()
+        {
+            Player.localPlayer.BeginGame();
+        }
+    }
 }
