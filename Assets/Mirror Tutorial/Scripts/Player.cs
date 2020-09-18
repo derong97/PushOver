@@ -41,18 +41,19 @@ namespace MirrorTutorial
             {
                 Debug.Log($"<color=green>Game hosted successfully</color>");
                 networkMatchChecker.matchId = _matchID.ToGuid();
-                TargetHostGame(true, _matchID);
+                TargetHostGame(true, _matchID, playerIndex);
             }
             else
             {
                 Debug.Log($"<color=red>Game hosted failed</color>");
-                TargetHostGame(false, _matchID);
+                TargetHostGame(false, _matchID, playerIndex);
             }
         }
 
         [TargetRpc]
-        void TargetHostGame(bool success, string _matchID)
+        void TargetHostGame(bool success, string _matchID, int _playerIndex)
         {
+            playerIndex = _playerIndex;
             matchID = _matchID;
             Debug.Log($"MatchID: {matchID} --- {_matchID}");
             UILobby.instance.HostSuccess(success, _matchID);
@@ -75,18 +76,19 @@ namespace MirrorTutorial
             {
                 Debug.Log($"<color=green>Game joined successfully</color>");
                 networkMatchChecker.matchId = _matchID.ToGuid();
-                TargetJoinGame(true, _matchID);
+                TargetJoinGame(true, _matchID, playerIndex);
             }
             else
             {
                 Debug.Log($"<color=red>Game joined failed</color>");
-                TargetJoinGame(false, _matchID);
+                TargetJoinGame(false, _matchID, playerIndex);
             }
         }
 
         [TargetRpc]
-        void TargetJoinGame(bool success, string _matchID)
+        void TargetJoinGame(bool success, string _matchID, int _playerIndex)
         {
+            playerIndex = _playerIndex;
             matchID = _matchID;
             Debug.Log($"MatchID: {matchID} --- {_matchID}");
             UILobby.instance.JoinSuccess(success, _matchID);

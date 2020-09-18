@@ -79,6 +79,7 @@ namespace MirrorTutorial
         {
             GameObject newUIPlayer = Instantiate(UIPlayerPrefab, UIPlayerParent);
             newUIPlayer.GetComponent<UIPlayer>().SetPlayer(player);
+            newUIPlayer.transform.SetSiblingIndex(player.playerIndex - 1);
         }
 
         public void BeginGame()
