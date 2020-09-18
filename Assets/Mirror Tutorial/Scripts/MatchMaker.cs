@@ -7,15 +7,21 @@ using UnityEngine;
 namespace MirrorTutorial
 {
 
-    [System.Serializable]
+    [Serializable]
     public class Match
     {
         public string matchID;
+        public bool publicMatch;
+        public bool inMatch;
+        public bool matchFull;
         public SyncListGameObject players = new SyncListGameObject();
 
-        public Match(string matchID, GameObject player)
+        public Match(string matchID, GameObject player, bool publicMatch)
         {
+            matchFull = false;
+            inMatch = false;
             this.matchID = matchID;
+            this.publicMatch = publicMatch;
             players.Add(player);
         }
 
@@ -35,21 +41,26 @@ namespace MirrorTutorial
         public SyncListMatch matches = new SyncListMatch();
         public SyncListString matchIDs = new SyncListString();
 
+#pragma warning disable 0649
         [SerializeField] GameObject turnManagerPrefab;
+        [SerializeField] int maxMatchPlayers = 4;
+#pragma warning restore 0649
+
 
         void Start()
         {
             instance = this;
         }
 
-        public bool HostGame(string _matchID, GameObject _player, out int playerIndex)
+        public bool HostGame(string _matchID, GameObject _player, bool publicMatch, out int playerIndex)
         {
             playerIndex = -1;
 
             if (!matchIDs.Contains(_matchID))
             {
                 matchIDs.Add(_matchID);
-                Match match = new Match(_matchID, _player);
+                Match match = new Match(_matchID, _player, publicMatch);
+                match.publicMatch = publicMatch;
                 matches.Add(match);
                 Debug.Log($"Match generated");
                 playerIndex = 1;
@@ -62,29 +73,58 @@ namespace MirrorTutorial
             }
         }
 
-        public bool JoinGame(string _matchID, GameObject _player, out int playerIndex)
-        {
+        public bool JoinGame (string _matchID, GameObject _player, out int playerIndex) {
             playerIndex = -1;
 
-            if (matchIDs.Contains(_matchID))
-            {
-                for(int i = 0; i < matches.Count; i++)
-                {
-                    if(matches[i].matchID == _matchID)
-                    {
-                        matches[i].players.Add(_player);
-                        playerIndex = matches[i].players.Count;
-                        break;
+            if (matchIDs.Contains (_matchID)) {
+
+                for (int i = 0; i < matches.Count; i++) {
+                    if (matches[i].matchID == _matchID) {
+                        if (!matches[i].inMatch && !matches[i].matchFull) {
+                            matches[i].players.Add (_player);
+                            _player.GetComponent<Player> ().currentMatch = matches[i];
+                            playerIndex = matches[i].players.Count;
+
+                            if (matches[i].players.Count == maxMatchPlayers) {
+                                matches[i].matchFull = true;
+                            }
+
+                            break;
+                        } else {
+                            return false;
+                        }
                     }
                 }
-                Debug.Log($"Match joined");
+
+                Debug.Log ($"Match joined");
                 return true;
-            }
-            else
-            {
-                Debug.Log($"Match ID does not exist");
+            } else {
+                Debug.Log ($"Match ID does not exist");
                 return false;
             }
+        }
+
+
+        public bool SearchGame(GameObject _player, out int playerIndex, out string matchID)
+        {
+            playerIndex = -1;
+            matchID = "";
+
+            for (int i = 0; i < matches.Count; i++)
+            {
+                Debug.Log($"Checking match {matches[i].matchID} | inMatch {matches[i].inMatch} | matchFull {matches[i].matchFull} | publicMatch {matches[i].publicMatch}");
+                if (!matches[i].inMatch && !matches[i].matchFull && matches[i].publicMatch)
+                {
+                    if (JoinGame(matches[i].matchID, _player, out playerIndex))
+                    {
+                        matchID = matches[i].matchID;
+                        return true;
+                    }
+                }
+            }
+
+
+            return false;
         }
 
         public void BeginGame(string _matchID)
@@ -126,6 +166,28 @@ namespace MirrorTutorial
             }
             Debug.Log($"Random Match ID: {_id}");
             return _id;
+        }
+
+        public void PlayerDisconnected(Player player, string _matchID)
+        {
+            for (int i = 0; i < matches.Count; i++)
+            {
+                if(matches[i].matchID == _matchID)
+                {
+                    int playerIndex = matches[i].players.IndexOf(player.gameObject);
+                    matches[i].players.RemoveAt(playerIndex);
+                    matches[i].matchFull = false;
+                    Debug.Log($"Player disconnected from match {_matchID} | {matches[i].players.Count} players remaining");
+
+                    if (matches[i].players.Count == 0)
+                    {
+                        Debug.Log($"No more players in Match. Terminating {_matchID}");
+                        matches.RemoveAt(i);
+                        matchIDs.Remove(_matchID);
+                    }
+                    break;
+                }
+            }
         }
     }
 

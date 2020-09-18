@@ -5,7 +5,9 @@ namespace MirrorTutorial
 {
     public class AutoHostClient : MonoBehaviour
     {
+#pragma warning disable 0649
         [SerializeField] NetworkManager networkManger;
+#pragma warning restore 0649
 
         void Start()
         {

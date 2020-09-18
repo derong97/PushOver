@@ -9,35 +9,55 @@ namespace MirrorTutorial
         public static Player localPlayer;
         [SyncVar] public string matchID;
         [SyncVar] public int playerIndex; // in relation to other players in the game
+        [SyncVar] public Match currentMatch;
 
         NetworkMatchChecker networkMatchChecker;
 
-        private void Start() {
-            networkMatchChecker = GetComponent<NetworkMatchChecker>();
+        GameObject playerLobbyUI;
 
-            if (isLocalPlayer){
+        private void Awake() {
+            networkMatchChecker = GetComponent<NetworkMatchChecker>();
+        }
+
+        public override void OnStartClient()
+        {
+            if (isLocalPlayer)
+            {
                 localPlayer = this;
             }
             else
             {
-                UILobby.instance.SpawnPlayerPrefab(this);
+                Debug.Log($"Spawning other player UI");
+                playerLobbyUI = UILobby.instance.SpawnPlayerPrefab(this);
             }
         }
 
+        public override void OnStopClient()
+        {
+            Debug.Log($"Client stopped");
+            ClientDisconnect();
+        }
+
+        public override void OnStopServer()
+        {
+            Debug.Log($"Client stopped on server");
+            ServerDisconnect();
+        }
+
         /*
-            HOST MATCH 
+            HOST GAME 
         */
 
-        public void HostGame(){
+        public void HostGame(bool publicMatch){
             string matchID = MatchMaker.GetRandomMatchID();
-            CmdHostGame(matchID);
+            CmdHostGame(matchID, publicMatch);
         }
 
         [Command]
-        void CmdHostGame(string _matchID)
+        void CmdHostGame(string _matchID, bool publicMatch)
         {
             matchID = _matchID;
-            if (MatchMaker.instance.HostGame(_matchID, gameObject, out playerIndex))
+            if (MatchMaker.instance.HostGame(_matchID, gameObject, publicMatch, out playerIndex))
             {
                 Debug.Log($"<color=green>Game hosted successfully</color>");
                 networkMatchChecker.matchId = _matchID.ToGuid();
@@ -55,12 +75,12 @@ namespace MirrorTutorial
         {
             playerIndex = _playerIndex;
             matchID = _matchID;
-            Debug.Log($"MatchID: {matchID} --- {_matchID}");
+            Debug.Log($"MatchID: {matchID} == {_matchID}");
             UILobby.instance.HostSuccess(success, _matchID);
         }
 
         /*
-            JOIN MATCH 
+            JOIN GAME 
         */
 
         public void JoinGame(string _inputID)
@@ -90,12 +110,46 @@ namespace MirrorTutorial
         {
             playerIndex = _playerIndex;
             matchID = _matchID;
-            Debug.Log($"MatchID: {matchID} --- {_matchID}");
+            Debug.Log($"MatchID: {matchID} == {_matchID}");
             UILobby.instance.JoinSuccess(success, _matchID);
         }
 
         /*
-            BEGIN MATCH 
+            SEARCH GAME 
+        */
+
+        public void SearchGame()
+        {
+            CmdSearchGame();
+        }
+
+        [Command]
+        void CmdSearchGame()
+        {
+            if (MatchMaker.instance.SearchGame(gameObject, out playerIndex, out matchID))
+            {
+                Debug.Log($"<color=green>Game Found Successfully</color>");
+                networkMatchChecker.matchId = matchID.ToGuid();
+                TargetSearchGame(true, matchID, playerIndex);
+            }
+            else
+            {
+                Debug.Log($"<color=red>Game Search Failed</color>");
+                TargetSearchGame(false, matchID, playerIndex);
+            }
+        }
+
+        [TargetRpc]
+        public void TargetSearchGame(bool success, string _matchID, int _playerIndex)
+        {
+            playerIndex = _playerIndex;
+            matchID = _matchID;
+            Debug.Log($"MatchID: {matchID} == {_matchID} | {success}");
+            UILobby.instance.SearchSuccess(success, _matchID);
+        }
+
+        /*
+            BEGIN GAME 
         */
 
         public void BeginGame()
@@ -110,7 +164,7 @@ namespace MirrorTutorial
             Debug.Log($"<color=green>Game beginning</color>");
         }
 
-        public void StartGame()
+        public void StartGame() // Server
         {
             TargetBeginGame();
         }
@@ -121,6 +175,42 @@ namespace MirrorTutorial
             Debug.Log($"MatchID: {matchID} | Beginning");
             // Additively load game scene
             SceneManager.LoadScene(2, LoadSceneMode.Additive);
+        }
+
+        /*
+            DISCONNECT GAME 
+        */
+
+        public void DisconnectGame()
+        {
+            CmdDisconnectGame();
+        }
+
+        [Command]
+        void CmdDisconnectGame()
+        {
+            ServerDisconnect();
+        }
+
+        void ServerDisconnect()
+        {
+            MatchMaker.instance.PlayerDisconnected(this, matchID);
+            networkMatchChecker.matchId = string.Empty.ToGuid();
+            RpcDisconnectGame();
+        }
+
+        [ClientRpc]
+        void RpcDisconnectGame()
+        {
+            ClientDisconnect();
+        }
+
+        void ClientDisconnect()
+        {
+            if (playerLobbyUI != null)
+            {
+                Destroy(playerLobbyUI);
+            }
         }
     }
 }

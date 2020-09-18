@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace MirrorTutorial
@@ -7,11 +9,13 @@ namespace MirrorTutorial
     {
         public static UILobby instance;
 
+#pragma warning disable 0649
         [Header("Host Join")]
         [SerializeField] InputField joinMatchInput;
-        [SerializeField] Button joinButton;
-        [SerializeField] Button hostButton;
+        [SerializeField] List<Selectable> lobbySelectables = new List<Selectable>();
         [SerializeField] Canvas lobbyCanvas;
+        [SerializeField] Canvas searchCanvas;
+        bool searching = false;
 
         [Header("Lobby")]
         [SerializeField] Transform UIPlayerParent;
@@ -19,43 +23,52 @@ namespace MirrorTutorial
         [SerializeField] Text matchIDText;
         [SerializeField] GameObject beginGameButton;
 
+        GameObject playerLobbyUI;
+#pragma warning restore 0649
+
+
         void Start()
         {
             instance = this;
         }
 
-        public void Host()
+        public void HostPublic()
         {
-            joinMatchInput.interactable = false;
-            joinButton.interactable = false;
-            hostButton.interactable = false;
+            lobbySelectables.ForEach(x => x.interactable = false);
 
-            Player.localPlayer.HostGame();
+            Player.localPlayer.HostGame(true);
         }
 
+
+        public void HostPrivate()
+        {
+            lobbySelectables.ForEach(x => x.interactable = false);
+
+            Player.localPlayer.HostGame(false);
+        }        
+        
         public void HostSuccess(bool success, string matchID)
         {
             if (success)
             {
                 lobbyCanvas.enabled = true;
-                SpawnPlayerPrefab(Player.localPlayer);
+                if (playerLobbyUI != null)
+                {
+                    Destroy(playerLobbyUI);
+                }
+                playerLobbyUI = SpawnPlayerPrefab(Player.localPlayer);
                 matchIDText.text = matchID;
                 beginGameButton.SetActive(true);
             }
             else
             {
-                joinMatchInput.interactable = true;
-                joinButton.interactable = true;
-                hostButton.interactable = true;
+                lobbySelectables.ForEach(x => x.interactable = true);
             }
         }
 
         public void Join()
         {
-            joinMatchInput.interactable = false;
-            joinButton.interactable = false;
-            hostButton.interactable = false;
-
+            lobbySelectables.ForEach(x => x.interactable = false);
             Player.localPlayer.JoinGame(joinMatchInput.text.ToUpper());
         }
 
@@ -64,27 +77,86 @@ namespace MirrorTutorial
             if (success)
             {
                 lobbyCanvas.enabled = true;
-                SpawnPlayerPrefab(Player.localPlayer);
+                if (playerLobbyUI != null)
+                {
+                    Destroy(playerLobbyUI);
+                }
+                playerLobbyUI = SpawnPlayerPrefab(Player.localPlayer);
                 matchIDText.text = matchID;
             }
             else
             {
-                joinMatchInput.interactable = true;
-                joinButton.interactable = true;
-                hostButton.interactable = true;
+                lobbySelectables.ForEach(x => x.interactable = true);
             }
         }
 
-        public void SpawnPlayerPrefab(Player player)
+        public void DisconnectGame()
+        {
+            if (playerLobbyUI != null)
+            {
+                Destroy(playerLobbyUI);
+            }
+            Player.localPlayer.DisconnectGame();
+            lobbyCanvas.enabled = false;
+            lobbySelectables.ForEach(x => x.interactable = true);
+            beginGameButton.SetActive(false);
+        }
+
+        public GameObject SpawnPlayerPrefab(Player player)
         {
             GameObject newUIPlayer = Instantiate(UIPlayerPrefab, UIPlayerParent);
             newUIPlayer.GetComponent<UIPlayer>().SetPlayer(player);
             newUIPlayer.transform.SetSiblingIndex(player.playerIndex - 1);
+            return newUIPlayer;
         }
 
         public void BeginGame()
         {
             Player.localPlayer.BeginGame();
+        }
+
+        public void SearchGame()
+        {  
+            StartCoroutine(Searching());
+        }
+
+        IEnumerator Searching()
+        {
+            searchCanvas.enabled = true;
+            searching = true;
+
+            float searchInterval = 1;
+            float currentTime = 1;
+
+            while (searching)
+            {
+                if (currentTime > 0)
+                {
+                    currentTime -= Time.deltaTime;
+                }
+                else
+                {
+                    currentTime = searchInterval;
+                    Player.localPlayer.SearchGame();
+                }
+                yield return null;
+            }
+            searchCanvas.enabled = false;
+        }
+
+        public void SearchSuccess(bool success, string matchID)
+        {
+            if (success)
+            {
+                searchCanvas.enabled = false;
+                searching = false;
+                JoinSuccess(success, matchID);
+            }
+        }
+
+        public void CancelSearchGame()
+        {
+            searching = false;
         }
     }
 }
